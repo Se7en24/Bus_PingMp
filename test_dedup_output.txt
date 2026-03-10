@@ -1,0 +1,43 @@
+﻿============================================================
+DEDUP + AUTO-CORRECTION TEST SUITE
+============================================================
+
+Server is running. Starting tests...
+
+--- Test 1: Fresh Detection Insert ---
+  [PASS] Insert returns 200 ù status=200
+  [FAIL] Action is 'created' ù action=skipped
+  [PASS] Got an ID ù id=26
+
+.\venv\Scripts\python.exe : 
+Traceback (most recent call last):
+At line:1 char:52
++ ... top\Bus_PingMp"; 
+.\venv\Scripts\python.exe 
+test_dedup.py 2>&1 | Out-F ...
++                      ~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpe 
+   cified: (Traceback (most recent   
+  call last)::String) [], RemoteEx   
+ ception
+    + FullyQualifiedErrorId : Native 
+   CommandError
+ 
+  File "C:\Users\LENOVO\Desktop\Bus_P
+ingMp\test_dedup.py", line 89, in 
+<module>
+    print("--- Test 2: Duplicate 
+(Lower Conf) \u2192 Should SKIP ---")
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python314\Lib\encodings\cp
+1252.py", line 19, in encode
+    return codecs.charmap_encode(inpu
+t,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec 
+can't encode character '\u2192' in 
+position 35: character maps to 
+<undefined>

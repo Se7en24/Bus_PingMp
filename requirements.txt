@@ -1,0 +1,42 @@
+# Core
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+python-dotenv
+pydantic
+
+# Detection
+ultralytics
+opencv-python
+numpy
+rapidfuzz
+requests
+easyocr
+
+# IndicPhotoOCR dependencies (all of them)
+torch
+torchvision
+transformers
+pillow
+datasets
+tqdm
+nltk
+timm
+pytorch-lightning
+PyYAML
+lmdb
+shapely
+easydict
+scipy
+sentencepiece
+safetensors
+huggingface_hub
+accelerate
+regex
+matplotlib
+joblib
+tokenizers
+
+# Learning (scheduling)
+apscheduler

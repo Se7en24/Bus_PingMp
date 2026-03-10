@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BusPing — When's My Bus? | AJCE</title>
+    <meta name="description" content="Real-time bus arrival predictions for Amal Jyothi College of Engineering.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ═══════ LIGHT THEME — AJCE INSPIRED ═══════ */
+        :root,
+        [data-theme="light"] {
+            --bg: #ffffff;
+            --surface: #ffffff;
+            --surface-alt: #f0f4f8;
+            --border: #dee5ed;
+
+            --text: #1b2a4a;
+            --text-2: #4a5e7a;
+            --text-3: #8698b1;
+            --text-inv: #ffffff;
+
+            /* AJCE Primary: Strong Blue */
+            --primary: #1565c0;
+            --primary-dark: #0d47a1;
+            --primary-light: #e3f0ff;
+            --primary-vivid: #1976d2;
+
+            /* AJCE Accent: Bold Red/Maroon */
+            --accent: #c62828;
+            --accent-dark: #b71c1c;
+            --accent-light: #ffebee;
+
+            /* Status Colors */
+            --green: #2e7d32;
+            --green-bg: #e8f5e9;
+            --orange: #ef6c00;
+            --orange-bg: #fff3e0;
+
+            --header-bg: #0d47a1;
+            --header-gradient: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+            --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+            --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.1), 0 8px 32px rgba(0, 0, 0, 0.06);
+            --radius: 12px;
+
+            --toggle-bg: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ═══════ DARK THEME ═══════ */
+        [data-theme="dark"] {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface-alt: #1c2333;
+            --border: #30363d;
+
+            --text: #f0f3f9;
+            --text-2: #8b949e;
+            --text-3: #6e7681;
+            --text-inv: #ffffff;
+
+            --primary: #58a6ff;
+            --primary-dark: #388bfd;
+            --primary-light: rgba(88, 166, 255, 0.1);
+            --primary-vivid: #79c0ff;
+
+            --accent: #f85149;
+            --accent-dark: #da3633;
+            --accent-light: rgba(248, 81, 73, 0.1);
+
+            --green: #56d364;
+            --green-bg: rgba(86, 211, 100, 0.1);
+            --orange: #d29922;
+            --orange-bg: rgba(210, 153, 34, 0.1);
+
+            --header-bg: #0d1117;
+            --header-gradient: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #1c2333 100%);
+            --card-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+            --card-shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.4), 0 8px 32px rgba(0, 0, 0, 0.3);
+
+            --toggle-bg: #30363d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.35s, color 0.35s;
+        }
+
+        /* ═══════ HEADER ═══════ */
+        .header {
+            background: var(--header-gradient);
+            color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-inner {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            height: 64px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            backdrop-filter: blur(8px);
+        }
+
+        .brand h1 {
+            font-size: 21px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .brand small {
+            font-size: 10px;
+            opacity: 0.75;
+            font-weight: 600;
+            display: block;
+            margin-top: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(46, 125, 50, 0.9);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .live-badge .dot {
+            width: 7px;
+            height: 7px;
+            background: #b9f6ca;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(1.6);
+            }
+        }
+
+        .clock {
+            font-size: 12px;
+            opacity: 0.7;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .theme-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .theme-btn span {
+            font-size: 16px;
+        }
+
+        .toggle-track {
+            width: 40px;
+            height: 22px;
+            background: var(--toggle-bg);
+            border-radius: 11px;
+            position: relative;
+            transition: background 0.3s;
+        }
+
+        .toggle-knob {
+            width: 16px;
+            height: 16px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: transform 0.3s;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+
+        [data-theme="dark"] .toggle-knob {
+            transform: translateX(18px);
+            background: var(--primary);
+        }
+
+        .admin-link {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            padding: 5px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .admin-link:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* ═══════ HERO BANNER ═══════ */
+        .hero-banner {
+            background: var(--header-gradient);
+            color: white;
+            padding: 32px 24px 40px;
+            text-align: center;
+        }
+
+        .hero-banner h2 {
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .hero-banner p {
+            opacity: 0.8;
+            font-size: 14px;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .day-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            padding: 8px 20px;
+            border-radius: 24px;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 16px;
+        }
+
+        /* ═══════ CONTENT ═══════ */
+        .content {
+            max-width: 1000px;
+            margin: -24px auto 0;
+            padding: 0 20px 80px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* ═══════ STAT CARDS — COLORED ═══════ */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
+
+        .stat {
+            border-radius: var(--radius);
+            padding: 22px 16px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat::after {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        .stat:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        .stat-upcoming {
+            background: linear-gradient(135deg, #1565c0, #1976d2);
+        }
+
+        .stat-tracked {
+            background: linear-gradient(135deg, #c62828, #e53935);
+        }
+
+        .stat-sightings {
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+        }
+
+        [data-theme="dark"] .stat-upcoming {
+            background: linear-gradient(135deg, #1e3a5f, #264573);
+        }
+
+        [data-theme="dark"] .stat-tracked {
+            background: linear-gradient(135deg, #5c1e1e, #7b2a2a);
+        }
+
+        [data-theme="dark"] .stat-sightings {
+            background: linear-gradient(135deg, #1b4332, #264e36);
+        }
+
+        .stat-val {
+            font-size: 36px;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-lbl {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+            opacity: 0.85;
+            margin-top: 4px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ═══════ SECTION HEADER ═══════ */
+        .section-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .section-bar h2 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        select {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23506176' viewBox='0 0 16 16'%3E%3Cpath d='M8 12L2 6h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 30px;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-refresh {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: var(--primary-dark);
+            box-shadow: 0 4px 12px rgba(21, 101, 192, 0.35);
+        }
+
+        /* ═══════ BUS CARDS — CLEAN LAYOUT ═══════ */
+        .bus-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bus-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s;
+        }
+
+        .bus-card.arriving-now {
+            border-left-color: var(--green);
+        }
+
+        .bus-card.arriving-soon {
+            border-left-color: var(--accent);
+        }
+
+        .bus-card:hover {
+            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Time box — blue rounded pill */
+        .time-box {
+            background: linear-gradient(135deg, var(--primary), var(--primary-vivid));
+            color: white;
+            padding: 12px 14px;
+            border-radius: 12px;
+            text-align: center;
+            min-width: 88px;
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .time-box {
+            background: linear-gradient(135deg, #1e3a5f, #2a5298);
+        }
+
+        .time-box .tb-time {
+            font-size: 18px;
+            font-weight: 900;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+
+        .time-box .tb-label {
+            font-size: 9px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Bus info */
+        .bus-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .bus-name-row {
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .type-tag {
+            font-size: 9px;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-ksrtc {
+            background: var(--accent);
+            color: white;
+        }
+
+        .tag-private {
+            background: var(--primary);
+            color: white;
+        }
+
+        .bus-sub {
+            font-size: 13px;
+            color: var(--text-2);
+            margin-top: 4px;
+            font-weight: 500;
+        }
+
+        .bus-sub strong {
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        /* Status badge — right side */
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .status-arriving {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .status-soon {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .status-upcoming {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .status-later {
+            background: var(--surface-alt);
+            color: var(--text-3);
+            border: 1px solid var(--border);
+        }
+
+        /* ═══════ EMPTY STATE ═══════ */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-3);
+        }
+
+        .empty-state .e-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-2);
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            max-width: 320px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ═══════ SKELETON ═══════ */
+        .skeleton {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+
+        .sk-time {
+            width: 88px;
+            height: 52px;
+            background: var(--surface-alt);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .sk-lines {
+            flex: 1;
+        }
+
+        .sk-line {
+            height: 14px;
+            background: var(--surface-alt);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .sk-line:nth-child(1) {
+            width: 50%;
+        }
+
+        .sk-line:nth-child(2) {
+            width: 30%;
+        }
+
+        @keyframes shimmer {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        /* ═══════ FOOTER ═══════ */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-3);
+            font-size: 11px;
+            margin-top: 32px;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* ═══════ RESPONSIVE ═══════ */
+        @media (max-width: 640px) {
+            .hero-banner h2 {
+                font-size: 24px;
+            }
+
+            .stats {
+                gap: 8px;
+            }
+
+            .stat {
+                padding: 16px 12px;
+            }
+
+            .stat-val {
+                font-size: 26px;
+            }
+
+            .bus-card {
+                flex-wrap: wrap;
+                padding: 14px 16px;
+                gap: 10px;
+            }
+
+            .time-box {
+                min-width: auto;
+                padding: 10px 12px;
+            }
+
+            .time-box .tb-time {
+                font-size: 15px;
+            }
+
+            .status-badge {
+                width: 100%;
+                justify-content: center;
+                margin-top: 4px;
+            }
+
+            .section-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls {
+                justify-content: space-between;
+            }
+
+            .admin-link,
+            .clock {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ═══ HEADER ═══ -->
+    <header class="header">
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-logo">🚌</div>
+                <div>
+                    <h1>BusPing</h1>
+                    <small>Amal Jyothi College of Engineering</small>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="live-badge"><span class="dot"></span> Live</div>
+                <span class="clock" id="clock"></span>
+                <div class="theme-btn" id="theme-toggle" title="Switch theme">
+                    <span id="theme-icon">☀️</span>
+                    <div class="toggle-track">
+                        <div class="toggle-knob"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ HERO ═══ -->
+    <section class="hero-banner">
+        <h2>When's My Bus? 🚍</h2>
+        <p>AI-powered predictions based on real detection data</p>
+        <div class="day-chip" id="day-chip">📅 Loading...</div>
+    </section>
+
+    <!-- ═══ CONTENT ═══ -->
+    <div class="content">
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat stat-upcoming">
+                <div class="stat-val" id="stat-upcoming">—</div>
+                <div class="stat-lbl">Upcoming</div>
+            </div>
+            <div class="stat stat-tracked">
+                <div class="stat-val" id="stat-buses">—</div>
+                <div class="stat-lbl">Buses Tracked</div>
+            </div>
+            <div class="stat stat-sightings">
+                <div class="stat-val" id="stat-detections">—</div>
+                <div class="stat-lbl">Total Sightings</div>
+            </div>
+        </div>
+
+        <!-- Section -->
+        <div class="section-bar">
+            <h2>🔮 Upcoming Arrivals</h2>
+            <div class="controls">
+                <select id="hours-select">
+                    <option value="1">Next 1 hour</option>
+                    <option value="2" selected>Next 2 hours</option>
+                    <option value="4">Next 4 hours</option>
+                    <option value="8">Next 8 hours</option>
+                    <option value="12">Full Day (12h)</option>
+                </select>
+                <button class="btn-refresh" onclick="loadPredictions()">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <!-- Bus List -->
+        <div class="bus-list" id="bus-list">
+            <div class="skeleton">
+                <div class="sk-time"></div>
+                <div class="sk-lines">
+                    <div class="sk-line"></div>
+                    <div class="sk-line"></div>
+                </div>
+            </div>
+            <div class="skeleton">
+                <div class="sk-time"></div>
+                <div class="sk-lines">
+                    <div class="sk-line"></div>
+                    <div class="sk-line"></div>
+                </div>
+            </div>
+            <div class="skeleton">
+                <div class="sk-time"></div>
+                <div class="sk-lines">
+                    <div class="sk-line"></div>
+                    <div class="sk-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>BusPing — Smart Bus Detection & Prediction</p>
+            <p>Amal Jyothi College of Engineering, Autonomous • <a href="/dashboard">Admin Dashboard</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const API = window.location.origin;
+        const CAMERA_ID = 'CAM_TO_KANJIRAPALLY';
+        const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // ═══ Theme ═══
+        const html = document.documentElement;
+        const themeIcon = document.getElementById('theme-icon');
+        const saved = localStorage.getItem('busping-theme') || 'light';
+        html.setAttribute('data-theme', saved);
+        themeIcon.textContent = saved === 'dark' ? '🌙' : '☀️';
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const next = html.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('busping-theme', next);
+            themeIcon.textContent = next === 'dark' ? '🌙' : '☀️';
+        });
+
+        // ═══ Clock ═══
+        function tick() {
+            const n = new Date();
+            document.getElementById('clock').textContent =
+                `${DAYS[n.getDay()]}, ${n.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+        }
+        setInterval(tick, 1000); tick();
+
+        // ═══ Animated counter ═══
+        function countUp(id, target) {
+            const el = document.getElementById(id);
+            const start = parseInt(el.textContent) || 0;
+            const t0 = performance.now();
+            (function step(now) {
+                const p = Math.min((now - t0) / 600, 1);
+                el.textContent = Math.round(start + (target - start) * (1 - Math.pow(1 - p, 3)));
+                if (p < 1) requestAnimationFrame(step);
+            })(t0);
+        }
+
+        // ═══ Load summary ═══
+        async function loadSummary() {
+            try {
+                const r = await fetch(`${API}/analytics/summary?camera_id=${CAMERA_ID}`);
+                if (!r.ok) throw 0;
+                const d = await r.json();
+                countUp('stat-buses', d.total_unique_buses || 0);
+                countUp('stat-detections', d.total_detections || 0);
+            } catch {
+                document.getElementById('stat-buses').textContent = '—';
+                document.getElementById('stat-detections').textContent = '—';
+            }
+        }
+
+        // ═══ Load predictions ═══
+        async function loadPredictions() {
+            const box = document.getElementById('bus-list');
+            const hrs = document.getElementById('hours-select').value;
+
+            box.innerHTML = [1, 2, 3].map(() =>
+                `<div class="skeleton"><div class="sk-time"></div><div class="sk-lines"><div class="sk-line"></div><div class="sk-line"></div></div></div>`
+            ).join('');
+
+            try {
+                const r = await fetch(`${API}/analytics/predictions?camera_id=${CAMERA_ID}&hours_ahead=${hrs}`);
+                if (!r.ok) throw new Error(r.status);
+                const d = await r.json();
+
+                document.getElementById('day-chip').innerHTML =
+                    `📅 ${d.current_day} — Showing next ${hrs} hour${hrs > 1 ? 's' : ''}`;
+
+                const preds = (d.predictions || []).sort((a, b) => {
+                    const ta = a.time_sort_key || a.expected_window;
+                    const tb = b.time_sort_key || b.expected_window;
+                    if (ta !== tb) return ta.localeCompare(tb);
+                    return b.likelihood_pct - a.likelihood_pct;
+                });
+
+                countUp('stat-upcoming', preds.length);
+
+                if (!preds.length) {
+                    box.innerHTML = `
+                        <div class="empty-state">
+                            <div class="e-icon">🌙</div>
+                            <h3>No buses predicted</h3>
+                            <p>No buses expected in the next ${hrs} hour${hrs > 1 ? 's' : ''}. Try a wider window or check back later.</p>
+                        </div>`;
+                    return;
+                }
+
+                box.innerHTML = preds.map(renderCard).join('');
+            } catch (e) {
+                box.innerHTML = `
+                    <div class="empty-state">
+                        <div class="e-icon">⚠️</div>
+                        <h3>Connection Error</h3>
+                        <p>Could not reach the server at <strong>${API}</strong></p>
+                    </div>`;
+            }
+        }
+
+        // ═══ Render card — clean layout ═══
+        function renderCard(p) {
+            const isKSRTC = p.bus_type === 'KSRTC';
+            const tagHtml = p.bus_type
+                ? `<span class="type-tag ${isKSRTC ? 'tag-ksrtc' : 'tag-private'}">${p.bus_type}</span>`
+                : '';
+
+            const tw = p.expected_window || '—';
+            const time = tw.split('–')[0] || tw;
+
+            // Status badge
+            let statusClass = 'status-later', statusText = '⏳ Upcoming';
+            let cardClass = '';
+            try {
+                const now = new Date();
+                const sk = p.time_sort_key || time;
+                const [h, m] = sk.split(':').map(Number);
+                const bt = new Date(now); bt.setHours(h, m, 0, 0);
+                const diff = Math.round((bt - now) / 60000);
+                if (diff <= 0 && diff > -5) {
+                    statusClass = 'status-arriving'; statusText = '🟢 Arriving';
+                    cardClass = 'arriving-now';
+                } else if (diff > 0 && diff <= 15) {
+                    statusClass = 'status-soon'; statusText = `⏱ ${diff} min`;
+                    cardClass = 'arriving-soon';
+                } else if (diff > 15 && diff <= 60) {
+                    statusClass = 'status-upcoming'; statusText = `⏱ ${diff} min`;
+                }
+            } catch { }
+
+            const dest = p.destination && p.destination !== 'Unknown'
+                ? `→ <strong>${p.destination}</strong>` : '';
+
+            return `
+                <div class="bus-card ${cardClass}">
+                    <div class="time-box">
+                        <div class="tb-time">${time}</div>
+                        <div class="tb-label">ETA</div>
+                    </div>
+                    <div class="bus-info">
+                        <div class="bus-name-row">${p.bus_name} ${tagHtml}</div>
+                        <div class="bus-sub">${dest}</div>
+                    </div>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>`;
+        }
+
+        // ═══ Auto refresh ═══
+        setInterval(() => { loadPredictions(); loadSummary(); }, 30000);
+
+        // ═══ Init ═══
+        document.addEventListener('DOMContentLoaded', () => { loadSummary(); loadPredictions(); });
+        document.getElementById('hours-select').addEventListener('change', loadPredictions);
+    </script>
+</body>
+
+</html>

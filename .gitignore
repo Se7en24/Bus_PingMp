@@ -1,0 +1,26 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+venv311/
+.venv/
+
+# Models (large files)
+*.pt
+Models/
+
+# Data
+Data/
+*.mp4
+
+# Temp files
+temp_*.jpg
+temp_*.png
+
+# IDE
+.vscode/
+.idea/

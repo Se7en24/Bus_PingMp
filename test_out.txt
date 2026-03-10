@@ -1,0 +1,47 @@
+============================================================
+DEDUP + AUTO-CORRECTION TEST SUITE
+============================================================
+
+Server is running. Unique tag: 1771994030
+
+--- Test 1: Fresh Detection Insert ---
+  [PASS] Insert returns 200 -- status=200
+  [PASS] Action is 'created' -- action=created
+  [PASS] Got an ID -- id=35
+
+--- Test 2: Duplicate (Lower Conf) -> Should SKIP ---
+  [PASS] Insert returns 200
+  [PASS] Action is 'skipped' -- action=skipped
+  [PASS] Returns original ID -- id=35 (expected 35)
+
+--- Test 3: Duplicate (Higher Conf) -> Should UPDATE ---
+  [PASS] Insert returns 200
+  [PASS] Action is 'updated' -- action=updated
+  [PASS] Same ID as original -- id=35 (expected 35)
+  [FAIL] Bus name updated -- bus_name=TEST BUS ALPHA
+
+--- Test 4: Different Destination -> Should CREATE ---
+  [PASS] Insert returns 200
+  [PASS] Action is 'created' -- action=created
+  [PASS] Got new ID -- id=36 (different from 35)
+
+--- Test 5: Bus Name Auto-Correction ---
+  Found 3 test bus profiles
+  [PASS] Typo detection inserted
+  Submitted: 'TEST BUS ALPH SUPREM'
+  Got back:  'TEST BUS ALPH SUPREM'
+  [FAIL] Name was auto-corrected -- expected 'TEST BUS ALPHA SUPREME', got 'TEST BUS ALPH SUPREM'
+
+--- Test 6: Manual Name Confirmation ---
+  [PASS] Profile not found (may need more detections first) -- Expected on fresh DB
+
+--- Summary: Recent Detections ---
+  id=37  bus=TEST BUS ALPH SUPREM  dest=AUTOCORRECT_TEST_DEST_1771994030  conf=88
+  id=36  bus=TEST BUS BETA  dest=DIFF_TEST_DEST_1771994030  conf=90
+  id=35  bus=TEST BUS ALPHA  dest=TEST_DEST_1771994030  conf=95
+  [PASS] Total entries is 3 (expected 2-3, not 5) -- got 3
+
+============================================================
+RESULTS:  15 passed,  2 failed
+WARNING: 2 test(s) failed -- check output above
+============================================================

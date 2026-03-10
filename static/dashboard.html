@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartBus - Bus Tracking Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --primary-light: #e8f0fe;
+            --primary-dark: #1557b0;
+            --green: #0d9f57;
+            --green-light: #e6f7ed;
+            --orange: #ea8600;
+            --orange-light: #fef3e0;
+            --red: #d93025;
+            --red-light: #fce8e6;
+            --purple: #7b2ff2;
+            --purple-light: #f0e6ff;
+            --bg: #f5f7fa;
+            --white: #ffffff;
+            --text: #202124;
+            --text-light: #5f6368;
+            --border: #e0e3e8;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────── */
+        .header {
+            background: var(--primary);
+            color: white;
+            padding: 0 24px;
+            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 0 10px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .logo-text h1 {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .logo-text p {
+            font-size: 11px;
+            opacity: .75;
+            margin-top: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255, 255, 255, .15);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1)
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: .5
+            }
+        }
+
+        .clock {
+            font-size: 13px;
+            opacity: .8;
+        }
+
+        /* ── Nav Tabs ───────────────────────── */
+        .nav-tabs {
+            display: flex;
+            gap: 0;
+        }
+
+        .nav-tab {
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .7);
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .nav-tab:hover {
+            color: white;
+        }
+
+        .nav-tab.active {
+            color: white;
+            border-bottom-color: white;
+        }
+
+        /* ── Main Container ─────────────────── */
+        .main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* ── Stat Cards ─────────────────────── */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-icon.blue {
+            background: var(--primary-light);
+        }
+
+        .stat-icon.green {
+            background: var(--green-light);
+        }
+
+        .stat-icon.orange {
+            background: var(--orange-light);
+        }
+
+        .stat-icon.purple {
+            background: var(--purple-light);
+        }
+
+        .stat-info h3 {
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .stat-info p {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 4px;
+        }
+
+        /* ── Buttons ────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: 'Inter', sans-serif;
+            transition: all .15s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1.5px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-success {
+            background: var(--green);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #0b8a4b;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* ── Card ────────────────────────────── */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .card-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-head h2 {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 16px 20px;
+        }
+
+        .card-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        /* ── Controls / Select ──────────────── */
+        select,
+        .input {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+        }
+
+        select:focus,
+        .input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* ── Prediction Items ───────────────── */
+        .pred-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pred-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid #f0f1f3;
+            gap: 14px;
+        }
+
+        .pred-item:last-child {
+            border-bottom: none;
+        }
+
+        .pred-rank {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .rank-1 {
+            background: #fff3cd;
+            color: #b8860b;
+        }
+
+        .rank-2 {
+            background: #e8ecef;
+            color: #666;
+        }
+
+        .rank-3 {
+            background: #fde4d0;
+            color: #a85600;
+        }
+
+        .rank-default {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pred-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pred-name {
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bus-type-tag {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .tag-ksrtc {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .tag-private {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .pred-detail {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-top: 3px;
+        }
+
+        .pred-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .pred-time {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .likelihood-pill {
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .lk-high {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .lk-mid {
+            background: var(--orange-light);
+            color: var(--orange);
+        }
+
+        .lk-low {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        /* ── Bus Cards ──────────────────────── */
+        .bus-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .bus-card {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            transition: all .2s;
+        }
+
+        .bus-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .bus-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .bus-card-name {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .bus-card-stats {
+            display: flex;
+            gap: 16px;
+            padding: 8px 0;
+            border-top: 1px solid #f0f1f3;
+            margin-top: 8px;
+        }
+
+        .bus-mini-stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .bus-mini-stat .val {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .bus-mini-stat .lbl {
+            font-size: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+        }
+
+        .confirm-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .confirm-row input {
+            flex: 1;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            padding: 7px 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+        }
+
+        .confirm-row input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* ── Table ──────────────────────────── */
+        .det-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .det-table th {
+            text-align: left;
+            padding: 10px 14px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            background: #fafbfc;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .det-table td {
+            padding: 11px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f1f3;
+        }
+
+        .det-table tr:hover td {
+            background: #f8f9fb;
+        }
+
+        .conf-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .conf-high {
+            background: var(--green-light);
+            color: var(--green);
+        }
+
+        .conf-mid {
+            background: var(--orange-light);
+            color: var(--orange);
+        }
+
+        .conf-low {
+            background: var(--red-light);
+            color: var(--red);
+        }
+
+        /* ── Heatmap ────────────────────────── */
+        .heatmap-wrap {
+            overflow-x: auto;
+        }
+
+        .heatmap-row {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-bottom: 2px;
+        }
+
+        .heatmap-label {
+            width: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-light);
+            flex-shrink: 0;
+        }
+
+        .heatmap-cell {
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform .15s;
+        }
+
+        .heatmap-cell:hover {
+            transform: scale(1.4);
+            z-index: 5;
+        }
+
+        .heatmap-time-row {
+            display: flex;
+            gap: 2px;
+            margin-left: 50px;
+            margin-bottom: 4px;
+        }
+
+        .heatmap-time {
+            width: 22px;
+            font-size: 8px;
+            color: #999;
+            text-align: center;
+        }
+
+        /* ── Tooltip ─────────────────────────── */
+        [data-tip] {
+            position: relative;
+        }
+
+        [data-tip]:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 20;
+        }
+
+        /* ── Empty & Toast ───────────────────── */
+        .empty {
+            text-align: center;
+            color: var(--text-light);
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+        #toast-box {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast-msg {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideUp .3s ease, fadeOut .3s 2.7s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0
+            }
+        }
+
+        /* ── Arrival Board ──────────────────── */
+        .arrival-board {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .arrival-row {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all .2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .arrival-row:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .arrival-row.arriving-soon {
+            border-left: 4px solid var(--green);
+        }
+
+        .arrival-time-box {
+            background: var(--primary);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 90px;
+            flex-shrink: 0;
+        }
+
+        .arrival-time-box .arr-time {
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .arrival-time-box .arr-label {
+            font-size: 9px;
+            opacity: .7;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .arrival-route {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .arrival-bus-name {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .arrival-dest {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .arrival-dest .dest-arrow {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .arrival-dest .dest-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .arrival-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .arrival-countdown {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--green);
+            background: var(--green-light);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
+        .now-label {
+            background: var(--green);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 12px;
+            animation: pulse 2s infinite;
+        }
+
+        /* ── Responsive ──────────────────────── */
+        @media (max-width: 768px) {
+            .stat-row {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .bus-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-top {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .nav-tabs {
+                overflow-x: auto;
+            }
+
+            .main {
+                padding: 12px;
+            }
+
+            .arrival-row {
+                flex-wrap: wrap;
+            }
+
+            .arrival-time-box {
+                min-width: 70px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-top">
+            <div class="header-left">
+                <span class="logo-icon">&#x1F68C;</span>
+                <div class="logo-text">
+                    <h1>SmartBus</h1>
+                    <p>Kanjirapally Bus Detection &amp; Prediction</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="live-badge">
+                    <span class="live-dot"></span> Live
+                </div>
+                <span class="clock" id="clock"></span>
+            </div>
+        </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-page="home">&#127968; Home</button>
+            <button class="nav-tab" data-page="upcoming">&#128652; Upcoming</button>
+            <button class="nav-tab" data-page="buses">&#128203; Bus List</button>
+            <button class="nav-tab" data-page="history">&#128065; Detections</button>
+            <button class="nav-tab" data-page="heatmap">&#128293; Heatmap</button>
+        </nav>
+    </header>
+
+    <main class="main">
+        <!-- ============= HOME PAGE ============= -->
+        <div class="page active" id="page-home">
+            <!-- Stats -->
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-icon blue">&#x1F68C;</div>
+                    <div class="stat-info">
+                        <h3 id="s-buses">--</h3>
+                        <p>Buses Tracked</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">&#128065;</div>
+                    <div class="stat-info">
+                        <h3 id="s-dets">--</h3>
+                        <p>Total Detections</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">&#128200;</div>
+                    <div class="stat-info">
+                        <h3 id="s-patterns">--</h3>
+                        <p>Pattern Windows</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple">&#128337;</div>
+                    <div class="stat-info">
+                        <h3 id="s-upcoming">--</h3>
+                        <p>Upcoming Buses</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictions -->
+            <div class="card">
+                <div class="card-head">
+                    <h2>&#128337; Buses Coming Soon</h2>
+                    <div class="card-controls">
+                        <select id="hours-sel">
+                            <option value="1">Next 1 hour</option>
+                            <option value="2">Next 2 hours</option>
+                            <option value="3" selected>Next 3 hours</option>
+                            <option value="6">Next 6 hours</option>
+                            <option value="12">Full day</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="loadPredictions()">&#x1F504; Refresh</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="pred-list" class="pred-list">
+                        <div class="empty">
+                            <div class="empty-icon">&#128337;</div>Loading predictions...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div style="display:flex;gap:10px;justify-content:center;padding:10px 0 20px">
+                <button class="btn btn-primary" onclick="rebuild()">&#x1F504; Rebuild Patterns</button>
+                <button class="btn btn-outline" onclick="loadAll()">&#x21BB; Refresh Everything</button>
+            </div>
+        </div>
+
+        <!-- ============= BUSES PAGE ============= -->
+        <div class="page" id="page-buses">
+            <div class="card">
+                <div class="card-head">
+                    <h2>&#128203; Registered Buses</h2>
+                    <button class="btn btn-outline btn-sm" onclick="loadBuses()">&#x21BB; Refresh</button>
+                </div>
+                <div class="card-body">
+                    <div id="bus-grid" class="bus-grid">
+                        <div class="empty">
+                            <div class="empty-icon">&#x1F68C;</div>Loading bus profiles...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============= DETECTIONS PAGE ============= -->
+        <div class="page" id="page-history">
+            <div class="card">
+                <div class="card-head">
+                    <h2>&#128065; Recent Detections</h2>
+                    <div class="card-controls">
+                        <select id="det-limit">
+                            <option value="20">Last 20</option>
+                            <option value="50" selected>Last 50</option>
+                            <option value="100">Last 100</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="loadDetections()">&#x1F504; Refresh</button>
+                    </div>
+                </div>
+                <div style="overflow-x:auto">
+                    <table class="det-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Time</th>
+                                <th>Bus Name</th>
+                                <th>Destination</th>
+                                <th>Confidence</th>
+                                <th>Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="det-body">
+                            <tr>
+                                <td colspan="6" class="empty">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============= HEATMAP PAGE ============= -->
+        <div class="page" id="page-heatmap">
+            <div class="card">
+                <div class="card-head">
+                    <h2>&#128293; Weekly Arrival Heatmap</h2>
+                    <div class="card-controls">
+                        <select id="heatmap-bus"></select>
+                        <button class="btn btn-primary btn-sm" onclick="loadHeatmap()">Show</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="heatmap-box">
+                        <div class="empty">
+                            <div class="empty-icon">&#128293;</div>Select a bus to see its weekly pattern
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============= UPCOMING BUSES PAGE ============= -->
+        <div class="page" id="page-upcoming">
+            <div class="card">
+                <div class="card-head">
+                    <h2>&#128652; Upcoming Buses — Live Arrivals</h2>
+                    <div class="card-controls">
+                        <select id="upcoming-hours">
+                            <option value="1">Next 1 hour</option>
+                            <option value="2" selected>Next 2 hours</option>
+                            <option value="3">Next 3 hours</option>
+                            <option value="6">Next 6 hours</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="loadUpcoming()">&#x1F504; Refresh</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="upcoming-board">
+                        <div class="empty">
+                            <div class="empty-icon">&#128652;</div>Loading upcoming buses...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast -->
+    <div id="toast-box"></div>
+
+    <script>
+        const API = '';
+
+        // ── Tab switching ──────────────────
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('page-' + tab.dataset.page).classList.add('active');
+                // Load data
+                const p = tab.dataset.page;
+                if (p === 'home') { loadStats(); loadPredictions(); }
+                else if (p === 'upcoming') loadUpcoming();
+                else if (p === 'buses') loadBuses();
+                else if (p === 'history') loadDetections();
+                else if (p === 'heatmap') loadBusSelect();
+            });
+        });
+
+        // ── Clock ──────────────────────────
+        function updateClock() {
+            document.getElementById('clock').textContent = new Date().toLocaleString('en-IN', {
+                weekday: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        // ── Toast ──────────────────────────
+        function toast(msg, type) {
+            const c = document.getElementById('toast-box');
+            const t = document.createElement('div');
+            t.className = 'toast-msg';
+            t.textContent = (type === 'error' ? '❌ ' : '✅ ') + msg;
+            if (type === 'error') t.style.borderColor = 'var(--red)';
+            c.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // ── API helper ─────────────────────
+        async function api(url, opts = {}) {
+            const res = await fetch(API + url, opts);
+            if (!res.ok) throw new Error('Error ' + res.status);
+            return res.json();
+        }
+
+        // ── Stats ──────────────────────────
+        async function loadStats() {
+            try {
+                const d = await api('/analytics/summary?camera_id=CAM_TO_KANJIRAPALLY');
+                document.getElementById('s-buses').textContent = d.total_unique_buses;
+                document.getElementById('s-dets').textContent = d.total_detections.toLocaleString();
+                document.getElementById('s-patterns').textContent = d.total_pattern_windows.toLocaleString();
+            } catch { }
+        }
+
+        // ── Predictions ────────────────────
+        async function loadPredictions() {
+            const hours = document.getElementById('hours-sel').value;
+            const el = document.getElementById('pred-list');
+            el.innerHTML = '<div class="empty">Loading...</div>';
+
+            try {
+                const d = await api('/analytics/predictions?camera_id=CAM_TO_KANJIRAPALLY&hours_ahead=' + hours);
+                const preds = d.predictions || [];
+                document.getElementById('s-upcoming').textContent = preds.length;
+
+                if (!preds.length) {
+                    el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F634;</div>No buses predicted in this window.<br>Try a longer time range or click <b>Rebuild Patterns</b>.</div>';
+                    return;
+                }
+
+                el.innerHTML = preds.map((p, i) => {
+                    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-default';
+                    const rel = p.reliability || (p.likelihood_pct >= 80 ? 'Very Regular' : p.likelihood_pct >= 50 ? 'Regular' : p.likelihood_pct >= 25 ? 'Occasional' : 'Rare');
+                    const relClass = rel === 'Very Regular' ? 'lk-high' : rel === 'Regular' ? 'lk-high' : rel === 'Occasional' ? 'lk-mid' : 'lk-low';
+                    const tagClass = (p.bus_type || '').includes('KSRTC') ? 'tag-ksrtc' : 'tag-private';
+                    const dest = p.destination && p.destination !== 'Unknown' ? ' \u2192 ' + p.destination : '';
+                    return `
+                    <div class="pred-item">
+                        <div class="pred-rank ${rankClass}">${i + 1}</div>
+                        <div class="pred-info">
+                            <div class="pred-name">
+                                ${p.bus_name}
+                                <span class="bus-type-tag ${tagClass}">${p.bus_type || 'Private'}</span>
+                            </div>
+                            <div class="pred-detail">${p.sample_size} sighting${p.sample_size > 1 ? 's' : ''} in this window${dest}</div>
+                        </div>
+                        <div class="pred-right">
+                            <div class="pred-time">${p.expected_window}</div>
+                            <span class="likelihood-pill ${relClass}">${rel}</span>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<div class="empty">Could not load predictions: ' + e.message + '</div>';
+            }
+        }
+
+        // ── Upcoming Buses (Arrival Board) ──
+        async function loadUpcoming() {
+            const hours = document.getElementById('upcoming-hours').value;
+            const el = document.getElementById('upcoming-board');
+            el.innerHTML = '<div class="empty">Loading upcoming arrivals...</div>';
+
+            try {
+                const d = await api('/analytics/predictions?camera_id=CAM_TO_KANJIRAPALLY&hours_ahead=' + hours);
+                const preds = d.predictions || [];
+
+                if (!preds.length) {
+                    el.innerHTML = '<div class="empty"><div class="empty-icon">&#128564;</div>No buses predicted in this window.<br>Try a longer time range or click <b>Rebuild Patterns</b> on the Home tab.</div>';
+                    return;
+                }
+
+                // Sort by time (closest first)
+                const timeSorted = [...preds].sort((a, b) => (a.time_sort_key || a.expected_window).localeCompare(b.time_sort_key || b.expected_window));
+
+                const now = new Date();
+                const nowMins = now.getHours() * 60 + now.getMinutes();
+
+                el.innerHTML = '<div class="arrival-board">' + timeSorted.map(p => {
+                    const tagClass = (p.bus_type || '').includes('KSRTC') ? 'tag-ksrtc' : 'tag-private';
+                    const rel = p.reliability || (p.likelihood_pct >= 80 ? 'Very Regular' : p.likelihood_pct >= 50 ? 'Regular' : p.likelihood_pct >= 25 ? 'Occasional' : 'Rare');
+                    const relClass = rel === 'Very Regular' ? 'lk-high' : rel === 'Regular' ? 'lk-high' : rel === 'Occasional' ? 'lk-mid' : 'lk-low';
+
+                    // Parse window start time for countdown
+                    const winStart = (p.time_sort_key || p.expected_window).split('\u2013')[0];
+                    const [wh, wm] = winStart.split(':').map(Number);
+                    const winMins = wh * 60 + wm;
+                    const diff = winMins - nowMins;
+                    const isSoon = diff >= 0 && diff <= 30;
+                    const isNow = diff >= -15 && diff <= 15;
+
+                    let countdownHTML;
+                    if (isNow) {
+                        countdownHTML = '<span class="now-label">&#128994; NOW</span>';
+                    } else if (diff > 0) {
+                        const hrs = Math.floor(diff / 60);
+                        const mins = diff % 60;
+                        countdownHTML = `<span class="arrival-countdown">In ${hrs ? hrs + 'h ' : ''}${mins}m</span>`;
+                    } else {
+                        countdownHTML = '<span class="arrival-countdown" style="color:var(--text-light);background:#f0f1f3">Passed</span>';
+                    }
+
+                    const dest = p.destination || 'Unknown';
+
+                    return `
+                    <div class="arrival-row ${isSoon || isNow ? 'arriving-soon' : ''}">
+                        <div class="arrival-time-box">
+                            <div class="arr-time">${p.expected_window.replace('\u2013', '<br><span style="font-size:11px;opacity:.6">to</span><br>')}</div>
+                            <div class="arr-label">Expected</div>
+                        </div>
+                        <div class="arrival-route">
+                            <div class="arrival-bus-name">
+                                ${p.bus_name}
+                                <span class="bus-type-tag ${tagClass}">${p.bus_type || 'Private'}</span>
+                            </div>
+                            <div class="arrival-dest">
+                                <span>Kanjirapally</span>
+                                <span class="dest-arrow">\u2192</span>
+                                <span class="dest-name">${dest}</span>
+                            </div>
+                        </div>
+                        <div class="arrival-meta">
+                            ${countdownHTML}
+                            <span class="likelihood-pill ${relClass}">${rel}</span>
+                        </div>
+                    </div>`;
+                }).join('') + '</div>';
+            } catch (e) {
+                el.innerHTML = '<div class="empty">Could not load upcoming: ' + e.message + '</div>';
+            }
+        }
+        async function loadBuses() {
+            const el = document.getElementById('bus-grid');
+            el.innerHTML = '<div class="empty">Loading...</div>';
+            try {
+                const buses = await api('/analytics/buses');
+                if (!buses.length) {
+                    el.innerHTML = '<div class="empty"><div class="empty-icon">&#x1F68C;</div>No buses found. Run the pipeline to detect buses.</div>';
+                    return;
+                }
+                el.innerHTML = buses.map(b => {
+                    const tagClass = (b.bus_type || '').includes('KSRTC') ? 'tag-ksrtc' : 'tag-private';
+                    const lastSeen = new Date(b.last_seen).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                    const firstSeen = new Date(b.first_seen).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+                    return `
+                    <div class="bus-card">
+                        <div class="bus-card-top">
+                            <span class="bus-card-name">${b.bus_name}</span>
+                            <span class="bus-type-tag ${tagClass}">${b.bus_type || 'Private'}</span>
+                        </div>
+                        <div class="bus-card-stats">
+                            <div class="bus-mini-stat">
+                                <div class="val">${b.total_detections}</div>
+                                <div class="lbl">Detections</div>
+                            </div>
+                            <div class="bus-mini-stat">
+                                <div class="val">${firstSeen}</div>
+                                <div class="lbl">First Seen</div>
+                            </div>
+                            <div class="bus-mini-stat">
+                                <div class="val">${lastSeen}</div>
+                                <div class="lbl">Last Seen</div>
+                            </div>
+                        </div>
+                        <div class="confirm-row">
+                            <input type="text" placeholder="Set correct name..." id="cf-${b.id}" class="input">
+                            <button class="btn btn-success btn-sm" onclick="confirmBus('${b.bus_name}', document.getElementById('cf-${b.id}').value)">&#10004; Confirm</button>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+            }
+        }
+
+        async function confirmBus(name, confirmed) {
+            if (!confirmed.trim()) return toast('Enter a name first', 'error');
+            try {
+                const res = await api('/bus-profile/' + encodeURIComponent(name) + '/confirm?confirmed_name=' + encodeURIComponent(confirmed), { method: 'PUT' });
+                if (res.action === 'merged') {
+                    toast('Merged "' + name + '" into "' + confirmed + '" (' + res.detections_moved + ' detections moved)');
+                } else if (res.action === 'renamed') {
+                    toast('Renamed "' + name + '" to "' + confirmed + '" (' + res.detections_moved + ' detections updated)');
+                } else {
+                    toast('Confirmed: ' + confirmed);
+                }
+                loadBuses();
+                loadStats();
+            } catch (e) { toast('Failed: ' + e.message, 'error'); }
+        }
+
+        // ── Detections ─────────────────────
+        async function loadDetections() {
+            const limit = document.getElementById('det-limit').value;
+            const el = document.getElementById('det-body');
+            el.innerHTML = '<tr><td colspan="6" class="empty">Loading...</td></tr>';
+            try {
+                const dets = await api('/detections?limit=' + limit);
+                if (!dets.length) {
+                    el.innerHTML = '<tr><td colspan="6" class="empty">No detections yet</td></tr>';
+                    return;
+                }
+                el.innerHTML = dets.map(d => {
+                    const c = d.destination_conf || 0;
+                    const cls = c >= 85 ? 'conf-high' : c >= 65 ? 'conf-mid' : 'conf-low';
+                    const time = new Date(d.created_at).toLocaleString('en-IN', {
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    const tagClass = (d.bus_type || '').includes('KSRTC') ? 'tag-ksrtc' : 'tag-private';
+                    return `
+                    <tr>
+                        <td>${d.id}</td>
+                        <td>${time}</td>
+                        <td><strong>${d.bus_name || '?'}</strong></td>
+                        <td>${d.destination_en || '?'}</td>
+                        <td><span class="conf-badge ${cls}">${c}%</span></td>
+                        <td><span class="bus-type-tag ${tagClass}">${d.bus_type || 'Private'}</span></td>
+                    </tr>`;
+                }).join('');
+            } catch (e) {
+                el.innerHTML = '<tr><td colspan="6" class="empty">Error: ' + e.message + '</td></tr>';
+            }
+        }
+
+        // ── Heatmap ────────────────────────
+        async function loadBusSelect() {
+            const sel = document.getElementById('heatmap-bus');
+            try {
+                const buses = await api('/analytics/buses');
+                sel.innerHTML = buses.map(b => '<option value="' + b.bus_name + '">' + b.bus_name + '</option>').join('');
+                if (buses.length) loadHeatmap();
+            } catch { }
+        }
+
+        async function loadHeatmap() {
+            const busName = document.getElementById('heatmap-bus').value;
+            if (!busName) return;
+            const el = document.getElementById('heatmap-box');
+            el.innerHTML = '<div class="empty">Loading...</div>';
+            try {
+                const d = await api('/analytics/heatmap/' + encodeURIComponent(busName));
+                const heatmap = d.heatmap || [];
+                if (!heatmap.length) {
+                    el.innerHTML = '<div class="empty">No pattern data. Click <b>Rebuild Patterns</b> on the Home tab.</div>';
+                    return;
+                }
+                const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                const byDay = {};
+                let maxCount = 1;
+                heatmap.forEach(h => {
+                    if (!byDay[h.day_of_week]) byDay[h.day_of_week] = {};
+                    byDay[h.day_of_week][h.time_window] = h;
+                    if (h.detection_count > maxCount) maxCount = h.detection_count;
+                });
+                const windows = [...new Set(heatmap.map(h => h.time_window))].sort();
+
+                const timeLabels = windows.map((w, i) =>
+                    '<span class="heatmap-time">' + (i % 6 === 0 ? w.split('-')[0].substring(0, 5) : '') + '</span>'
+                ).join('');
+
+                let html = '<div class="heatmap-wrap">';
+                html += '<p style="font-size:13px;color:var(--text-light);margin-bottom:12px"><strong>' + d.bus_name + '</strong> — ' + d.total_detections + ' total detections</p>';
+                html += '<div class="heatmap-time-row">' + timeLabels + '</div>';
+                for (let day = 0; day < 7; day++) {
+                    html += '<div class="heatmap-row"><span class="heatmap-label">' + days[day] + '</span>';
+                    for (const w of windows) {
+                        const cell = byDay[day] && byDay[day][w];
+                        const cnt = cell ? cell.detection_count : 0;
+                        const pct = cnt / maxCount;
+                        let bg;
+                        if (cnt === 0) bg = '#f0f1f3';
+                        else if (pct < .33) bg = '#bbdefb';
+                        else if (pct < .66) bg = '#42a5f5';
+                        else bg = '#1565c0';
+                        const labelColor = pct >= .66 ? 'white' : 'var(--text)';
+                        const tip = days[day] + ' ' + w + ': ' + cnt + ' detections' + (cell ? ', avg ' + cell.avg_confidence.toFixed(0) + '% conf' : '');
+                        html += '<div class="heatmap-cell" style="background:' + bg + '" data-tip="' + tip + '"></div>';
+                    }
+                    html += '</div>';
+                }
+                // Legend
+                html += '<div style="display:flex;gap:6px;align-items:center;margin-top:12px;font-size:11px;color:var(--text-light)">Less';
+                ['#f0f1f3', '#bbdefb', '#42a5f5', '#1565c0'].forEach(c => {
+                    html += '<div style="width:16px;height:16px;border-radius:3px;background:' + c + '"></div>';
+                });
+                html += 'More</div>';
+                html += '</div>';
+                el.innerHTML = html;
+            } catch (e) {
+                el.innerHTML = '<div class="empty">Error: ' + e.message + '</div>';
+            }
+        }
+
+        // ── Rebuild ────────────────────────
+        async function rebuild() {
+            toast('Rebuilding patterns...');
+            try {
+                const d = await api('/analytics/rebuild?days_back=60', { method: 'POST' });
+                toast('Rebuilt ' + d.patterns_upserted + ' pattern rows');
+                loadAll();
+            } catch (e) { toast('Failed: ' + e.message, 'error'); }
+        }
+
+        // ── Init ───────────────────────────
+        function loadAll() {
+            loadStats();
+            loadPredictions();
+        }
+        loadAll();
+    </script>
+</body>
+
+</html>

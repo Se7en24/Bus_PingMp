@@ -1,0 +1,49 @@
+============================================================
+DEDUP + AUTO-CORRECTION TEST SUITE
+============================================================
+
+Server OK. Tag: 1771995928
+
+--- Test 1: Fresh Insert ---
+  [PASS] Returns 200 -- status=200
+  [PASS] Action=created -- created
+  [PASS] Got ID -- id=49
+
+--- Test 2: Lower Conf Dup -> SKIP ---
+  [PASS] Returns 200
+  [PASS] Action=skipped -- skipped
+  [PASS] Same ID -- got=49 want=49
+
+--- Test 3: Higher Conf Dup -> UPDATE ---
+  [PASS] Returns 200
+  [PASS] Action=updated -- updated
+  [PASS] Same ID -- got=49 want=49
+  [FAIL] Name updated -- want=ZBUS_A_LONG_1771995928 got=ZBUS_A_LONG_1771995852
+
+--- Test 4: Different Dest -> CREATE ---
+  [PASS] Returns 200
+  [PASS] Action=created -- created
+  [PASS] New ID -- got=50
+
+--- Test 5: Confirm Bus Name ---
+  [PASS] Confirm returns 200 (with original name) -- status=200
+
+--- Test 6: Auto-Correction ---
+  [PASS] Returns 200
+  Sent:     'CONFIRMD_A_1771995928'
+  Expected: 'CONFIRMED_A_1771995928'
+  Got back: 'CONFIRMED_A_1771995928'
+  [PASS] Auto-corrected -- want 'CONFIRMED_A_1771995928', got 'CONFIRMED_A_1771995928'
+
+--- Summary ---
+  id=53  bus=CONFIRMED_A_1771995928  dest=TYPO_DEST_1771995928  conf=88
+  id=52  bus=ZBUS_A_1771995928  dest=EXTRA_1_DEST_1771995928  conf=85
+  id=51  bus=ZBUS_A_1771995928  dest=EXTRA_0_DEST_1771995928  conf=85
+  id=50  bus=ZBUS_B_1771995928  dest=OTHER_DEST_1771995928  conf=90
+  id=49  bus=ZBUS_A_LONG_1771995852  dest=DEST_1771995928  conf=95
+  [PASS] Total=5 (should be <= 5 due to dedup) -- got 5
+
+============================================================
+RESULTS:  16 passed,  1 failed
+WARNING: 1 test(s) failed
+============================================================
