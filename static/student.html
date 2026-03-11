@@ -547,6 +547,16 @@
             font-weight: 700;
         }
 
+        .freq-hint {
+            font-size: 11px;
+            color: var(--text-3);
+            font-weight: 600;
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         /* Status badge — right side */
         .status-badge {
             font-size: 11px;
@@ -658,6 +668,131 @@
             50% {
                 opacity: 0.4;
             }
+        }
+
+        /* ═══════ FREQUENCY INSIGHTS ═══════ */
+        .freq-section {
+            margin-top: 36px;
+        }
+
+        .freq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .freq-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            box-shadow: var(--card-shadow);
+            transition: all 0.25s;
+        }
+
+        .freq-card:hover {
+            box-shadow: var(--card-shadow-hover);
+            transform: translateY(-2px);
+        }
+
+        .freq-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .freq-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .freq-trend {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trend-increasing {
+            background: var(--green-bg);
+            color: var(--green);
+        }
+
+        .trend-stable {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .trend-decreasing {
+            background: var(--orange-bg);
+            color: var(--orange);
+        }
+
+        .freq-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 10px;
+        }
+
+        .freq-stat {
+            flex: 1;
+        }
+
+        .freq-stat-val {
+            font-size: 22px;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1.2;
+        }
+
+        .freq-stat-lbl {
+            font-size: 9px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-3);
+            margin-top: 2px;
+        }
+
+        .freq-times {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .freq-time-chip {
+            background: var(--primary-light);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .freq-regularity-bar {
+            height: 5px;
+            background: var(--surface-alt);
+            border-radius: 3px;
+            margin-top: 12px;
+            overflow: hidden;
+        }
+
+        .freq-regularity-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.8s ease;
+        }
+
+        .freq-empty {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-3);
+            font-size: 13px;
         }
 
         /* ═══════ FOOTER ═══════ */
@@ -824,6 +959,18 @@
             </div>
         </div>
 
+        <!-- ═══ BUS PATTERNS (AI LEARNED) ═══ -->
+        <div class="freq-section">
+            <div class="section-bar">
+                <h2>🧠 Bus Patterns <small
+                        style="font-size:12px;font-weight:600;color:var(--text-3);margin-left:4px">(AI Learned)</small>
+                </h2>
+            </div>
+            <div class="freq-grid" id="freq-grid">
+                <div class="freq-empty">Loading patterns...</div>
+            </div>
+        </div>
+
         <footer class="footer">
             <p>BusPing — Smart Bus Detection & Prediction</p>
             <p>Amal Jyothi College of Engineering, Autonomous • <a href="/dashboard">Admin Dashboard</a></p>
@@ -834,6 +981,9 @@
         const API = window.location.origin;
         const CAMERA_ID = 'CAM_TO_KANJIRAPALLY';
         const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        // Frequency data cache — bus_name → frequency object
+        let freqMap = {};
 
         // ═══ Theme ═══
         const html = document.documentElement;
@@ -963,6 +1113,20 @@
             const dest = p.destination && p.destination !== 'Unknown'
                 ? `→ <strong>${p.destination}</strong>` : '';
 
+            // Build inline frequency hint from cached freqMap
+            let freqHint = '';
+            const freq = freqMap[p.bus_name];
+            if (freq) {
+                const daysLabel = freq.avg_days_per_week >= 5 ? 'Daily'
+                    : freq.avg_days_per_week >= 3 ? `~${freq.avg_days_per_week}x/week`
+                        : freq.avg_days_per_week >= 1 ? `~${freq.avg_days_per_week}x/week`
+                            : 'Rare';
+                const timesLabel = (freq.typical_times || []).length
+                    ? '· ' + freq.typical_times.slice(0, 2).join(', ')
+                    : '';
+                freqHint = `<div class="freq-hint">📊 Usually ${daysLabel} ${timesLabel}</div>`;
+            }
+
             return `
                 <div class="bus-card ${cardClass}">
                     <div class="time-box">
@@ -972,16 +1136,94 @@
                     <div class="bus-info">
                         <div class="bus-name-row">${p.bus_name} ${tagHtml}</div>
                         <div class="bus-sub">${dest}</div>
+                        ${freqHint}
                     </div>
                     <span class="status-badge ${statusClass}">${statusText}</span>
                 </div>`;
         }
 
+        // ═══ Load frequency insights ═══
+        async function loadFrequency() {
+            const grid = document.getElementById('freq-grid');
+            try {
+                const r = await fetch(`${API}/analytics/frequency?camera_id=${CAMERA_ID}`);
+                if (!r.ok) throw new Error(r.status);
+                const data = await r.json();
+
+                if (!data.length) {
+                    grid.innerHTML = '<div class="freq-empty">📊 No pattern data yet. The system needs more detection data to learn bus schedules.</div>';
+                    return;
+                }
+
+                // Build lookup map for use in renderCard()
+                freqMap = {};
+                data.forEach(b => { freqMap[b.bus_name] = b; });
+
+                grid.innerHTML = data
+                    .filter(b => b.total_sightings >= 2)
+                    .sort((a, b) => b.avg_days_per_week - a.avg_days_per_week)
+                    .slice(0, 12)
+                    .map(renderFreqCard)
+                    .join('');
+            } catch {
+                grid.innerHTML = '<div class="freq-empty">Could not load pattern data.</div>';
+            }
+        }
+
+        function renderFreqCard(b) {
+            const trendClass = `trend-${b.trend || 'stable'}`;
+            const trendIcon = b.trend === 'increasing' ? '📈' : b.trend === 'decreasing' ? '📉' : '➡️';
+
+            const timesHtml = (b.typical_times || []).length
+                ? b.typical_times.map(t => `<span class="freq-time-chip">🕐 ${t}</span>`).join('')
+                : '<span style="color:var(--text-3);font-size:11px">Not enough data</span>';
+
+            // Regularity bar color
+            let barColor = 'var(--accent)';
+            if (b.regularity_score >= 70) barColor = 'var(--green)';
+            else if (b.regularity_score >= 40) barColor = 'var(--orange)';
+
+            // Human-readable frequency summary
+            let freqLabel = '';
+            if (b.avg_days_per_week >= 5) freqLabel = 'Daily';
+            else if (b.avg_days_per_week >= 3) freqLabel = 'Regular';
+            else if (b.avg_days_per_week >= 1) freqLabel = 'Occasional';
+            else freqLabel = 'Rare';
+
+            return `
+                <div class="freq-card">
+                    <div class="freq-header">
+                        <span class="freq-name">${b.bus_name}</span>
+                        <span class="freq-trend ${trendClass}">${trendIcon} ${b.trend || 'stable'}</span>
+                    </div>
+                    <div class="freq-stats">
+                        <div class="freq-stat">
+                            <div class="freq-stat-val">${b.avg_days_per_week}</div>
+                            <div class="freq-stat-lbl">Days / Week</div>
+                        </div>
+                        <div class="freq-stat">
+                            <div class="freq-stat-val">${b.regularity_score}%</div>
+                            <div class="freq-stat-lbl">Reliability</div>
+                        </div>
+                        <div class="freq-stat">
+                            <div class="freq-stat-val">${b.total_sightings}</div>
+                            <div class="freq-stat-lbl">Sightings</div>
+                        </div>
+                    </div>
+                    <div style="font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Typical Times</div>
+                    <div class="freq-times">${timesHtml}</div>
+                    <div class="freq-regularity-bar">
+                        <div class="freq-regularity-fill" style="width:${b.regularity_score}%;background:${barColor}"></div>
+                    </div>
+                </div>`;
+        }
+
         // ═══ Auto refresh ═══
         setInterval(() => { loadPredictions(); loadSummary(); }, 30000);
+        setInterval(loadFrequency, 120000); // refresh patterns every 2 min
 
         // ═══ Init ═══
-        document.addEventListener('DOMContentLoaded', () => { loadSummary(); loadPredictions(); });
+        document.addEventListener('DOMContentLoaded', () => { loadSummary(); loadPredictions(); loadFrequency(); });
         document.getElementById('hours-select').addEventListener('change', loadPredictions);
     </script>
 </body>
